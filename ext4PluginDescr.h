@@ -37,7 +37,7 @@ public:
 	int PluginNumber;
 	tProgressProc ProgressProc;
 	tLogProc LogProc;
-	tRequestProc RequestProc;
+	tRequestProc RequestProc;	
 
 	//linux
 	disk **hard_disks;
@@ -54,6 +54,7 @@ private:
 	char *current_path;
 	int current_partition;
 	int dir_entry_num;
+	bool plugin_initialized;
 private:
 	void init_ext2_partitions_id_map(int partitions_id_map_elem);
 	int load_ext2_dir_entry(int disk_no, int part_no_map, int inode_num);
@@ -71,6 +72,7 @@ public:
 		this->dir_entry_num = 0;
 		this->current_path = NULL;
 		this->current_partition = -1;	
+		this->plugin_initialized = false;
 	}
 
 	~ext4PluginDescr();
@@ -78,14 +80,16 @@ public:
 	int get_hdd_count();
 	int search_system_for_linux_ext2_partitions();	
 	int extract_disk_and_part_no(char *path, int *disk_no, int *part_no);
+	bool validate_disk_and_part_no(int disk_no, int part_no);
 	int get_first_ext4_disk_and_part_no(int *disk_no, int *part_no);
 	int get_next_ext4_disk_and_part_no(int *disk_no, int *part_no_map);
 	int get_partition_index_via_real_number(int disk_no, int part_no)
 	{return this->ext4_partitions_id_map[this->ext4_partitions_id_map[disk_no] + part_no - 1];}
 	int get_current_partition(){ return this->current_partition; }
 	void set_current_partition(int n){ this->current_partition = n; }
-	char *get_current_path() {return this->current_path;}
-
+	char *get_current_path() {return this->current_path;}	
+	bool get_plugin_initialized() { return this->plugin_initialized; }
+	void set_plugin_initialized(bool val) { this->plugin_initialized = val; }	
 	/**
 	 * set_current_path
 	 */

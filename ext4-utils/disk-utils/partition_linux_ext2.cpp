@@ -207,16 +207,22 @@ ext4_dir_entry_2 **partition_linux_ext2::get_dir_entry(unsigned int inode_nr, in
 	{
 		if (dir_blk.get_ext2_blk_nr(i, &nr_blk) < 0) 
 		{
-			for(unsigned int i=0; i < n_dir-1; i++)
-				delete tab_dir[i];
+			if (n_dir > 0)
+			{
+				for(unsigned int i=0; i < n_dir-1; i++)
+					delete tab_dir[i];
+			}
 			delete [] tab_dir;
 			return NULL;
 		}
 		buffer = read_sectors_ex(block_size_sect * nr_blk, block_size_sect);
 		if(buffer == NULL)
 		{
-			for(unsigned int i=0; i < n_dir-1; i++)
-				delete tab_dir[i];
+			if (n_dir > 0)
+			{
+				for(unsigned int i=0; i < n_dir-1; i++)
+					delete tab_dir[i];
+			}
 			delete [] tab_dir;
 			return NULL;
 		}
@@ -238,8 +244,11 @@ ext4_dir_entry_2 **partition_linux_ext2::get_dir_entry(unsigned int inode_nr, in
 					delete dir_entry;
 					delete [] buffer;
 					*read_dirs=0;
-					for(unsigned int i=0; i < n_dir-1; i++)
-						delete tmp_tab[i];
+					if (n_dir > 0)
+					{
+						for(unsigned int i=0; i < n_dir-1; i++)
+							delete tmp_tab[i];
+					}
 					delete [] tmp_tab;
 					return NULL;
 				}

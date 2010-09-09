@@ -109,6 +109,7 @@ int __stdcall FsInit(int PluginNr,tProgressProc pProgressProc,tLogProc pLogProc,
 	{
 		return -1;
 	}
+	pluginDescr.set_plugin_initialized(true);
 	return 0;
 }
 
@@ -119,13 +120,7 @@ HANDLE __stdcall FsFindFirst(char* Path, WIN32_FIND_DATA *FindData)
 	partition_linux_ext2 **ext2_partitions = NULL;
 	int disk_no, part_no;
 
-	if (!IsUserAdmin())
-	{
-		MessageBox(NULL, (LPCTSTR)"You are not admin", TEXT("INFO"), MB_OK); 
-		return INVALID_HANDLE_VALUE;
-	}
-
-	if (pluginDescr.ext4_partitions_id_map == NULL)
+	if (!pluginDescr.get_plugin_initialized() || pluginDescr.ext4_partitions_id_map == NULL)
 	{
 		return INVALID_HANDLE_VALUE;
 	}
@@ -174,6 +169,9 @@ HANDLE __stdcall FsFindFirst(char* Path, WIN32_FIND_DATA *FindData)
 		int part_no_map = pluginDescr.get_partition_index_via_real_number(disk_no, part_no);
 
 		ext2_partitions = pluginDescr.hard_disks[disk_no]->get_partitions_ext2();
+		if (ext2_partitions == NULL) {
+			return INVALID_HANDLE_VALUE;
+		}
 		/*char *Path2 = "\\sd11aa\\";
 		int ret = pluginDescr.extract_disk_and_part_no(Path2, &disk_no, &part_no);*/
 #ifdef _DEBUG
