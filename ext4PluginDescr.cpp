@@ -173,9 +173,30 @@ int ext4PluginDescr::extract_disk_and_part_no(char *path, int *disk_no, int *par
 		return -1;
 	}
 	l_disk_no--;
+	if (this->validate_disk_and_part_no(l_disk_no, l_part_no) == false)
+	{
+		return -1;
+	}
 	*disk_no = l_disk_no;
 	*part_no = l_part_no;
 	return p + len - path;
+}
+
+bool ext4PluginDescr::validate_disk_and_part_no(int disk_no, int part_no)
+{
+	if (disk_no >=0 && disk_no < this->hard_disks_cnt && part_no >= 0)
+	{
+		int n = this->hard_disks[disk_no]->get_partitions_ext2_count();
+		if (n > 0)
+		{
+			partition_linux_ext2 **ext4_partiotions = this->hard_disks[disk_no]->get_partitions_ext2();
+			if (ext4_partiotions != NULL && part_no <= (int)ext4_partiotions[n-1]->get_part_no())
+			{
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 int ext4PluginDescr::get_first_ext4_disk_and_part_no(int *disk_no, int *part_no)
@@ -243,10 +264,13 @@ ext4_dir_entry_2 *ext4PluginDescr::get_first_dir_entry(char *path, int disk_no, 
 {
 		int inode_num = 2, i = 0;
 		ext4_dir_entry_2 *dir = NULL;
-		char *local_path = NULL, *word = NULL, *lasts = NULL, sep[] = "\\";
+		char *word = NULL, *lasts = NULL, sep[] = "\\";
 		size_t len = 0;
 		
-		this->load_ext2_dir_entry(disk_no, part_no_map, EXT4_ROOT_INO);
+		if (this->load_ext2_dir_entry(disk_no, part_no_map, EXT4_ROOT_INO) == -1)
+		{
+			return NULL;
+		}
 		this->set_current_path(path);
 
 		word = strchr(path + 1, '\\');			
@@ -272,14 +296,16 @@ ext4_dir_entry_2 *ext4PluginDescr::get_first_dir_entry(char *path, int disk_no, 
 						this->dWin.appendText("found: %s =? %s\n", word, dir->name);
 						this->dWin.appendText("path divided into tokens: %s\n", word);
 #endif
-						this->load_ext2_dir_entry(disk_no, part_no_map, inode_num);
+						if ( this->load_ext2_dir_entry(disk_no, part_no_map, inode_num) == -1)
+						{
+							return NULL;
+						}
 						break;
 					}
 				}
 
 			}
 		}			
-		delete [] local_path;
 		dir = NULL;
 #ifdef _DEBUG2
 		this->dWin.appendText("dir_entry_num: %d\n", this->dir_entry_num);
@@ -330,7 +356,10 @@ ext4_dir_entry_2 *ext4PluginDescr::get_first_dir_entry2(char *path, int disk_no,
 			dir = this->dir_entries[i];
 			if (len == dir->name_len && !strncmp(ptr, dir->name, len)) //found dirname
 			{
-				this->load_ext2_dir_entry(disk_no, part_no_map, dir->inode);
+				if (this->load_ext2_dir_entry(disk_no, part_no_map, dir->inode) == -1)
+				{
+					return NULL;
+				}
 				dir = NULL;
 
 				for(j = 0; j < this->dir_entry_num; j++)
