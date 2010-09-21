@@ -349,8 +349,9 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 
 	if (pluginDescr.get_first_ext4_disk_and_part_no(&disk_no, &part_no) == -1)
 		return FS_FILE_NOTFOUND;
-	
-	if((inode = pluginDescr.get_ext2_inode(disk_no, part_no, RemoteName, &inode_num)) == NULL)
+
+	int part_no_map = pluginDescr.get_partition_index_via_real_number(disk_no, part_no);
+	if((inode = pluginDescr.get_ext2_inode(disk_no, part_no_map, RemoteName, &inode_num)) == NULL)
 	{
 		return FS_FILE_NOTFOUND;
 	}
@@ -373,7 +374,7 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 	}
 	params.ext2_hnd = hnd;
 	partition_linux_ext2 **ext2_partitions = pluginDescr.hard_disks[disk_no]->get_partitions_ext2();
-	params.partition = ext2_partitions[part_no];
+	params.partition = ext2_partitions[part_no_map];
 	params.inode_num = inode_num;
 	params.error = error;
 
