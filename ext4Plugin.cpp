@@ -347,7 +347,7 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 	LARGE_INTEGER large_pos = {0};
 	int disk_no, part_no;
 
-	if (pluginDescr.get_first_ext4_disk_and_part_no(&disk_no, &part_no) == -1)
+	if (pluginDescr.extract_disk_and_part_no(RemoteName, &disk_no, &part_no) == -1)
 		return FS_FILE_NOTFOUND;
 
 	int part_no_map = pluginDescr.get_partition_index_via_real_number(disk_no, part_no);
