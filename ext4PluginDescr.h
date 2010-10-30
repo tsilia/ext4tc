@@ -167,7 +167,7 @@ public:
 	 * get_ext2_inode
 	 */ 
 
-	ext4_inode *get_ext2_inode(int disk_no, int part_no, char *path, int *inode_num)
+	ext4_inode *get_ext2_inode(int disk_no, int part_no, char *path, unsigned int *inode_num)
 	{
 		ext4_dir_entry_2 *dir = NULL;
 		char *ptr = NULL;

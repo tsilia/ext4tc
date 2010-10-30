@@ -99,7 +99,7 @@ void debugWindowCls::appendTextNoTimestamp(char *format, ... )
 	buffer[0] = '\0';
 
 	vsprintf(buffer + lstrlen(buffer), format, args );	
-	SendMessage(this->hwnd_rich, EM_SETSEL, - 1, 0);
+	SendMessage(this->hwnd_rich, EM_SETSEL, -1, -1);
 	SendMessage(this->hwnd_rich, EM_REPLACESEL, (WPARAM)0, (LPARAM)buffer);
 	delete [] buffer;
 }
@@ -119,7 +119,7 @@ void debugWindowCls::appendText(char *format, ... )
 	sprintf(buffer, "%d: ", GetTickCount());
 
 	vsprintf(buffer + lstrlen(buffer), format, args );	
-	SendMessage(this->hwnd_rich, EM_SETSEL, - 1, 0);
+	SendMessage(this->hwnd_rich, EM_SETSEL, -1, -1);
 	SendMessage(this->hwnd_rich, EM_REPLACESEL, (WPARAM)0, (LPARAM)buffer);
 	delete [] buffer;
 }

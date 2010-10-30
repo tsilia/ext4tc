@@ -343,7 +343,7 @@ unsigned char *partition_linux_ext2::read_file(unsigned int inode_nr, HANDLE hnd
 
 	inode = get_ext4_inode(inode_nr);
 	if(inode == NULL) {*error = -1; return NULL;}
-	if(inode->i_size_lo == 0 && inode->i_size_high == 0){*error = -1; return NULL;}
+	if(inode->i_size_lo == 0 && inode->i_size_high == 0){*error = 0; return NULL;}
 	blocks file_blk(this, inode);
 	
 	inode_size = (unsigned long long)inode->i_size_high << 32;
@@ -354,7 +354,7 @@ unsigned char *partition_linux_ext2::read_file(unsigned int inode_nr, HANDLE hnd
 	{
 		if (file_blk.get_ext2_blk_nr(i, &nr_blk) < 0)
 		{
-			*error = -1; return NULL;
+			*error = -1;
 			return NULL;
 		}
 		buffer = read_sectors_ex(block_size_sect * nr_blk, block_size_sect);		

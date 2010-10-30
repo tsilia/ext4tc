@@ -78,8 +78,12 @@ int ext4PluginDescr::search_system_for_linux_ext2_partitions()
 #ifdef _DEBUG
 			for (int j = 0; j < n; j++)
 			{
+				ext4_super_block *sb = &linux_part[j]->ext2->ext4_sb;
 				dWin.appendText("(%d) type: %d offset:%lld\n", linux_part[j]->get_part_no(), 
 					linux_part[j]->get_type(), linux_part[j]->get_offset());
+				
+				dWin.appendText("(%d) features EXT4_FEATURE_INCOMPAT_64BIT: %x \n", linux_part[j]->get_part_no(), 
+					!!(sb->s_feature_incompat & EXT4_FEATURE_INCOMPAT_64BIT));
 			}
 #endif
 		}

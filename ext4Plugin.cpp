@@ -192,8 +192,6 @@ HANDLE __stdcall FsFindFirst(char* Path, WIN32_FIND_DATA *FindData)
 		if (ext2_partitions == NULL) {
 			return INVALID_HANDLE_VALUE;
 		}
-		/*char *Path2 = "\\sd11aa\\";
-		int ret = pluginDescr.extract_disk_and_part_no(Path2, &disk_no, &part_no);*/
 #ifdef _DEBUG
 		pluginDescr.dWin.appendText("Path %s ret: %d disk_no: %d part_no %d part_inumndex %d\n", 
 			Path, ret, disk_no, part_no, pluginDescr.get_partition_index_via_real_number(disk_no, part_no));
@@ -334,15 +332,14 @@ int __stdcall FsFindClose(HANDLE Hdl)
 int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteInfoStruct* ri)
 {
 	thCopyParam params = {0};
-	std::ofstream ext2stream;
 	size_t len = strlen(PART_PREFIX);
 	HANDLE hTh = INVALID_HANDLE_VALUE;
-	int inode_num = 0;
+	unsigned int inode_num = 0;
 	unsigned long long fsize = 0, pos = 0;
 	ext4_inode *inode = NULL;
 	char *ptr = strstr(RemoteName, "\\"PART_PREFIX);
 	WCHAR *buffer = NULL;
-	int wcharLen = 0, error = 0;
+	int wcharLen = 0;
 	HANDLE hnd = INVALID_HANDLE_VALUE;
 	LARGE_INTEGER large_pos = {0};
 	int disk_no, part_no;
@@ -353,12 +350,18 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 	int part_no_map = pluginDescr.get_partition_index_via_real_number(disk_no, part_no);
 	if((inode = pluginDescr.get_ext2_inode(disk_no, part_no_map, RemoteName, &inode_num)) == NULL)
 	{
+#ifdef _DEBUG
+		pluginDescr.dWin.appendText("File %s was not found\n", RemoteName);
+#endif
 		return FS_FILE_NOTFOUND;
 	}
-#ifdef _DEBUG2
-	pluginDescr.dWin.appendText("copy path %s part num: %d size:%d\n", RemoteName, num, inode->i_size_lo);
+#ifdef _DEBUG
+	pluginDescr.dWin.appendText("inode: %u mode: %#0x, %o\n", inode_num, inode->i_mode, inode->i_mode);
 #endif
-
+	if(!S_ISREG(inode->i_mode))	
+	{
+		return FS_FILE_NOTSUPPORTED;
+	}
 	wcharLen = MultiByteToWideChar(CP_ACP, 0, LocalName, (int)strlen(LocalName), NULL, 0) + 2;
 	buffer = new WCHAR[wcharLen];
 	memset(buffer, 0, sizeof(WCHAR) * wcharLen);
@@ -376,10 +379,11 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 	partition_linux_ext2 **ext2_partitions = pluginDescr.hard_disks[disk_no]->get_partitions_ext2();
 	params.partition = ext2_partitions[part_no_map];
 	params.inode_num = inode_num;
-	params.error = error;
 
 	pluginDescr.ProgressProc(pluginDescr.PluginNumber, RemoteName, LocalName, 0);
-	
+#ifdef _DEBUG
+	int startTicks = GetTickCount();
+#endif
 	hTh = CreateThread(NULL, 0, copy_thread_subroutine, &params, 0, NULL);
 	fsize = (unsigned long long)inode->i_size_high << 32;
 	fsize |= (unsigned long long)inode->i_size_lo;
@@ -387,8 +391,11 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 	
 	while(1)
 	{
-		if (GetFileSizeEx(hnd, &large_pos) == 0 || error != 0)
+		if (GetFileSizeEx(hnd, &large_pos) == 0 || params.error != 0)
 		{
+#ifdef _DEBUG
+			pluginDescr.dWin.appendText("An error %d occured while reading %s\n", params.error, RemoteName);
+#endif			
 			CloseHandle(hnd);
 			WaitForSingleObject(hTh, INFINITE);
 			CloseHandle(hTh);
@@ -406,6 +413,9 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 			return FS_FILE_USERABORT;
 		}
 	}	
+#ifdef _DEBUG
+	pluginDescr.dWin.appendText("Finished copying file %s in %d ms\n", RemoteName, GetTickCount() - startTicks);
+#endif			
 	CloseHandle(hnd);
 	WaitForSingleObject(hTh, INFINITE);
 	CloseHandle(hTh);
