@@ -38,7 +38,7 @@ public:
 	unsigned long s_itb_per_group;	/* Number of inode table blocks per group */
 	unsigned long s_gdb_count;	/* Number of group descriptor blocks */
 	unsigned long s_desc_per_block;	/* Number of group descriptors per block */
-	unsigned long s_block_count;
+	unsigned long s_group_block_count;
 	struct ext4_super_block *sb;
 	ext4_inode **inodes_table_cache;
 public:

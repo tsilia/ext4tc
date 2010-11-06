@@ -37,7 +37,7 @@
 #pragma managed(push, off)
 #endif
 
-ext4PluginDescr pluginDescr;
+ext4PluginDescr *pluginDescr;
 
 struct thCopyParam
 {
@@ -110,11 +110,12 @@ Return Value:
 
 int __stdcall FsInit(int PluginNr,tProgressProc pProgressProc,tLogProc pLogProc,tRequestProc pRequestProc)
 {
+	pluginDescr = new ext4PluginDescr();
 	int hdd_count = -1;
-	pluginDescr.ProgressProc = pProgressProc;
-    pluginDescr.LogProc = pLogProc;
-    pluginDescr.RequestProc = pRequestProc;
-	pluginDescr.PluginNumber = PluginNr;
+	pluginDescr->ProgressProc = pProgressProc;
+    pluginDescr->LogProc = pLogProc;
+    pluginDescr->RequestProc = pRequestProc;
+	pluginDescr->PluginNumber = PluginNr;
 	
 	if (!IsUserAdmin())
 	{
@@ -122,14 +123,14 @@ int __stdcall FsInit(int PluginNr,tProgressProc pProgressProc,tLogProc pLogProc,
 		return -1;
 	}
 #ifdef _DEBUG
-	pluginDescr.dWin.show(SW_NORMAL);
-	pluginDescr.dWin.appendText("----======= Ext2Viewer written by Krzysztof Stasiak =======----\n");
+	pluginDescr->dWin.show(SW_NORMAL);
+	pluginDescr->dWin.appendText("----======= Ext2Viewer written by Krzysztof Stasiak =======----\n");
 #endif
-	if (pluginDescr.search_system_for_linux_ext2_partitions() == -1)
+	if (pluginDescr->search_system_for_linux_ext2_partitions() == -1)
 	{
 		return -1;
 	}
-	pluginDescr.set_plugin_initialized(true);
+	pluginDescr->set_plugin_initialized(true);
 	return 0;
 }
 
@@ -140,7 +141,7 @@ HANDLE __stdcall FsFindFirst(char* Path, WIN32_FIND_DATA *FindData)
 	partition_linux_ext2 **ext2_partitions = NULL;
 	int disk_no, part_no;
 
-	if (!pluginDescr.get_plugin_initialized() || pluginDescr.ext4_partitions_id_map == NULL)
+	if (!pluginDescr->get_plugin_initialized() || pluginDescr->ext4_partitions_id_map == NULL)
 	{
 		return INVALID_HANDLE_VALUE;
 	}
@@ -151,12 +152,12 @@ HANDLE __stdcall FsFindFirst(char* Path, WIN32_FIND_DATA *FindData)
 		FindData->dwFileAttributes=FILE_ATTRIBUTE_DIRECTORY;
 		FindData->ftLastWriteTime.dwHighDateTime=0xFFFFFFFF;
 		FindData->ftLastWriteTime.dwLowDateTime=0xFFFFFFFE;
-		pluginDescr.clear_current_path();
+		pluginDescr->clear_current_path();
 
-		if (pluginDescr.get_first_ext4_disk_and_part_no(&disk_no, &part_no) == -1)
+		if (pluginDescr->get_first_ext4_disk_and_part_no(&disk_no, &part_no) == -1)
 			return INVALID_HANDLE_VALUE;
 
-		ext2_partitions = pluginDescr.hard_disks[disk_no]->get_partitions_ext2();
+		ext2_partitions = pluginDescr->hard_disks[disk_no]->get_partitions_ext2();
 		if (ext2_partitions == NULL) {
 			return INVALID_HANDLE_VALUE;
 		}
@@ -172,7 +173,7 @@ HANDLE __stdcall FsFindFirst(char* Path, WIN32_FIND_DATA *FindData)
 		strncpy_s(lf->Path, strlen(Path)+1, Path, strlen(Path));
 		lf->searchhandle=INVALID_HANDLE_VALUE;
 		lf->disk_no = disk_no;
-		lf->part_no_map = pluginDescr.get_partition_index_via_real_number(disk_no, part_no);
+		lf->part_no_map = pluginDescr->get_partition_index_via_real_number(disk_no, part_no);
 		strcpy(lf->LastFoundName, FindData->cFileName);
 		return (HANDLE)lf;
 	} 
@@ -183,38 +184,38 @@ HANDLE __stdcall FsFindFirst(char* Path, WIN32_FIND_DATA *FindData)
 		size_t len = strlen(PART_PREFIX);
 		char *ptr = strstr(Path, "\\"PART_PREFIX);
 
-		int ret = pluginDescr.extract_disk_and_part_no(Path, &disk_no, &part_no);
+		int ret = pluginDescr->extract_disk_and_part_no(Path, &disk_no, &part_no);
 		if (ret == -1)
 			return INVALID_HANDLE_VALUE;
-		int part_no_map = pluginDescr.get_partition_index_via_real_number(disk_no, part_no);
+		int part_no_map = pluginDescr->get_partition_index_via_real_number(disk_no, part_no);
 
-		ext2_partitions = pluginDescr.hard_disks[disk_no]->get_partitions_ext2();
+		ext2_partitions = pluginDescr->hard_disks[disk_no]->get_partitions_ext2();
 		if (ext2_partitions == NULL) {
 			return INVALID_HANDLE_VALUE;
 		}
 #ifdef _DEBUG
-		pluginDescr.dWin.appendText("Path %s ret: %d disk_no: %d part_no %d part_inumndex %d\n", 
-			Path, ret, disk_no, part_no, pluginDescr.get_partition_index_via_real_number(disk_no, part_no));
+		pluginDescr->dWin.appendText("Path %s ret: %d disk_no: %d part_no %d part_inumndex %d\n", 
+			Path, ret, disk_no, part_no, pluginDescr->get_partition_index_via_real_number(disk_no, part_no));
 		/*pluginDescr.dWin.appendText("Path %s ret: %d disk_no: %d part_no %d 'z'-'a'+1=%d\n", 
 				Path2, ret, disk_no, part_no, 'z'-'a'+1);*/
 #endif
 		
-		if (pluginDescr.get_current_path() == NULL)
+		if (pluginDescr->get_current_path() == NULL)
 		{
-			dir = pluginDescr.get_first_dir_entry(Path, disk_no, part_no_map, &num_last_entry);			
+			dir = pluginDescr->get_first_dir_entry(Path, disk_no, part_no_map, &num_last_entry);			
 		}
 		else
 		{
 			//if goes up
 			//should be optimalized with get_first_dir_entry2
 			
-			dir = pluginDescr.get_first_dir_entry(Path, disk_no, part_no_map, &num_last_entry);
+			dir = pluginDescr->get_first_dir_entry(Path, disk_no, part_no_map, &num_last_entry);
 		}
 		if (dir != NULL){
 			if (dir->file_type != EXT4_FT_DIR)
 			{
 				ext4_inode *inode = NULL;
-				inode = pluginDescr.get_ext2_inode(disk_no, part_no_map, dir->inode);
+				inode = pluginDescr->get_ext2_inode(disk_no, part_no_map, dir->inode);
 				FindData->nFileSizeLow = inode->i_size_lo;
 				if (dir->file_type == EXT4_FT_REG_FILE)
 					FindData->nFileSizeHigh = inode->i_size_high;
@@ -236,7 +237,7 @@ HANDLE __stdcall FsFindFirst(char* Path, WIN32_FIND_DATA *FindData)
 		strncpy_s(lf->Path, strlen(Path)+1, Path, strlen(Path));
 		lf->searchhandle = 0;
 		lf->disk_no = disk_no;
-		lf->part_no_map = pluginDescr.get_partition_index_via_real_number(disk_no, part_no);
+		lf->part_no_map = pluginDescr->get_partition_index_via_real_number(disk_no, part_no);
 		lf->num_last_entry = num_last_entry;
 		return (HANDLE)lf;
 	}
@@ -257,10 +258,10 @@ BOOL __stdcall FsFindNext(HANDLE Hdl,WIN32_FIND_DATA *FindData)
 
 	if (lf->searchhandle == INVALID_HANDLE_VALUE) 
 	{
-		if(pluginDescr.get_next_ext4_disk_and_part_no(&disk_no, &part_no_map) == -1)
+		if(pluginDescr->get_next_ext4_disk_and_part_no(&disk_no, &part_no_map) == -1)
 			return false;
 
-		partition_linux_ext2 **ext2_partitions = pluginDescr.hard_disks[disk_no]->get_partitions_ext2();
+		partition_linux_ext2 **ext2_partitions = pluginDescr->hard_disks[disk_no]->get_partitions_ext2();
 		if (ext2_partitions[part_no_map] == NULL)
 			return false;
 
@@ -278,13 +279,13 @@ BOOL __stdcall FsFindNext(HANDLE Hdl,WIN32_FIND_DATA *FindData)
 	else
 	{		
 		ext4_dir_entry_2 *dir = NULL;
-		dir = pluginDescr.get_next_dir_entry(&lf->num_last_entry);
+		dir = pluginDescr->get_next_dir_entry(&lf->num_last_entry);
 		if (dir != NULL)
 		{
 			if (dir->file_type != EXT4_FT_DIR)
 			{
 				ext4_inode *inode = NULL;
-				inode = pluginDescr.get_ext2_inode(lf->disk_no, lf->part_no_map, dir->inode);
+				inode = pluginDescr->get_ext2_inode(lf->disk_no, lf->part_no_map, dir->inode);
 				FindData->nFileSizeLow = inode->i_size_lo;
 				if (dir->file_type == EXT4_FT_REG_FILE)
 					FindData->nFileSizeHigh = inode->i_size_high;
@@ -344,19 +345,19 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 	LARGE_INTEGER large_pos = {0};
 	int disk_no, part_no;
 
-	if (pluginDescr.extract_disk_and_part_no(RemoteName, &disk_no, &part_no) == -1)
+	if (pluginDescr->extract_disk_and_part_no(RemoteName, &disk_no, &part_no) == -1)
 		return FS_FILE_NOTFOUND;
 
-	int part_no_map = pluginDescr.get_partition_index_via_real_number(disk_no, part_no);
-	if((inode = pluginDescr.get_ext2_inode(disk_no, part_no_map, RemoteName, &inode_num)) == NULL)
+	int part_no_map = pluginDescr->get_partition_index_via_real_number(disk_no, part_no);
+	if((inode = pluginDescr->get_ext2_inode(disk_no, part_no_map, RemoteName, &inode_num)) == NULL)
 	{
 #ifdef _DEBUG
-		pluginDescr.dWin.appendText("File %s was not found\n", RemoteName);
+		pluginDescr->dWin.appendText("File %s was not found\n", RemoteName);
 #endif
 		return FS_FILE_NOTFOUND;
 	}
 #ifdef _DEBUG
-	pluginDescr.dWin.appendText("inode: %u mode: %#0x, %o\n", inode_num, inode->i_mode, inode->i_mode);
+	pluginDescr->dWin.appendText("inode: %u mode: %#0x, %o\n", inode_num, inode->i_mode, inode->i_mode);
 #endif
 	if(!S_ISREG(inode->i_mode))	
 	{
@@ -376,11 +377,11 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 		return FS_FILE_WRITEERROR;
 	}
 	params.ext2_hnd = hnd;
-	partition_linux_ext2 **ext2_partitions = pluginDescr.hard_disks[disk_no]->get_partitions_ext2();
+	partition_linux_ext2 **ext2_partitions = pluginDescr->hard_disks[disk_no]->get_partitions_ext2();
 	params.partition = ext2_partitions[part_no_map];
 	params.inode_num = inode_num;
 
-	pluginDescr.ProgressProc(pluginDescr.PluginNumber, RemoteName, LocalName, 0);
+	pluginDescr->ProgressProc(pluginDescr->PluginNumber, RemoteName, LocalName, 0);
 #ifdef _DEBUG
 	int startTicks = GetTickCount();
 #endif
@@ -394,7 +395,7 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 		if (GetFileSizeEx(hnd, &large_pos) == 0 || params.error != 0)
 		{
 #ifdef _DEBUG
-			pluginDescr.dWin.appendText("An error %d occured while reading %s\n", params.error, RemoteName);
+			pluginDescr->dWin.appendText("An error %d occured while reading %s\n", params.error, RemoteName);
 #endif			
 			CloseHandle(hnd);
 			WaitForSingleObject(hTh, INFINITE);
@@ -404,7 +405,7 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 		if ((unsigned long long)large_pos.QuadPart >= fsize)
 			break;
 
-		if(pluginDescr.ProgressProc(pluginDescr.PluginNumber, RemoteName,
+		if(pluginDescr->ProgressProc(pluginDescr->PluginNumber, RemoteName,
 			LocalName, (int)(((double)large_pos.QuadPart / fsize)*100)) != 0)
 		{
 			CloseHandle(hnd);
@@ -414,7 +415,7 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 		}
 	}	
 #ifdef _DEBUG
-	pluginDescr.dWin.appendText("Finished copying file %s in %d ms\n", RemoteName, GetTickCount() - startTicks);
+	pluginDescr->dWin.appendText("Finished copying file %s in %d ms\n", RemoteName, GetTickCount() - startTicks);
 #endif			
 	CloseHandle(hnd);
 	WaitForSingleObject(hTh, INFINITE);
