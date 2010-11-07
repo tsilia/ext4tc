@@ -29,7 +29,7 @@ unsigned int blocks::indirect_blk_nr(unsigned int ind_blk_nr)
 
 	if(buffer==NULL)
 	{
-		buffer = part->read_sectors(block_size_sect * ind_blk_nr, block_size_sect);
+		buffer = part->read_sectors_ex(block_size_sect * (u64)ind_blk_nr, block_size_sect);
 		nr_blk = ((unsigned int *)buffer)[ind_index];		
 		if((ind_index++) == n_block-1){delete [] buffer; buffer = NULL; ind_index=0;}
 	}
@@ -103,7 +103,7 @@ unsigned int blocks::get_ext2_non_extent_blk(unsigned int blk_index, __u64 *phys
 	{
 		if(dindirect_buf==NULL)
 		{
-			dindirect_buf = part->read_sectors(block_size_sect * this->inode->i_block[EXT4_DIND_BLOCK], block_size_sect);
+			dindirect_buf = part->read_sectors_ex(block_size_sect * (u64)this->inode->i_block[EXT4_DIND_BLOCK], block_size_sect);
 			if(dindirect_buf==NULL) return -1;
             ind_blk_nr = ((unsigned int *)dindirect_buf)[0];
 

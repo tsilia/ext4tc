@@ -76,7 +76,7 @@ unsigned char *partition::read_sectors(DWORD s_start, unsigned int n_sectors)
 	{	
 		/*l_offset.QuadPart = s_start + this->offset;
 		l_offset.QuadPart <<= 9;*/
-		l_offset.QuadPart = s_start * this->sector_size;
+		l_offset.QuadPart = (u64)s_start * this->sector_size;
 		l_offset.QuadPart += this->offset;
 		if(SetFilePointerEx(this->part_handler, l_offset, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
 			return NULL;	
