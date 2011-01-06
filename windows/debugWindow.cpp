@@ -89,6 +89,7 @@ void debugWindowCls::appendTextNoTimestamp(char *format, ... )
 	va_list args;
 	char *buffer = NULL, *formatW = NULL;
 	int len = 0, wcharLen = 0;
+	SETTEXTEX TextInfo = {0};
 
 	va_start(args, format );
 
@@ -98,9 +99,12 @@ void debugWindowCls::appendTextNoTimestamp(char *format, ... )
 	buffer = new char[len + 20];
 	buffer[0] = '\0';
 
-	vsprintf(buffer + lstrlen(buffer), format, args );	
+	vsprintf(buffer + lstrlen(buffer), format, args );		
+
+	TextInfo.flags = ST_SELECTION;
+	TextInfo.codepage = CP_UTF8;
 	SendMessage(this->hwnd_rich, EM_SETSEL, -1, -1);
-	SendMessage(this->hwnd_rich, EM_REPLACESEL, (WPARAM)0, (LPARAM)buffer);
+	SendMessage(this->hwnd_rich, EM_SETTEXTEX, (WPARAM)&TextInfo, (LPARAM)buffer);
 	delete [] buffer;
 }
 
@@ -109,6 +113,7 @@ void debugWindowCls::appendText(char *format, ... )
 	va_list args;
 	char *buffer = NULL, *formatW = NULL;
 	int len = 0, wcharLen = 0;
+	SETTEXTEX TextInfo = {0};
 
 	va_start(args, format );
 
@@ -119,8 +124,11 @@ void debugWindowCls::appendText(char *format, ... )
 	sprintf(buffer, "%d: ", GetTickCount());
 
 	vsprintf(buffer + lstrlen(buffer), format, args );	
+
+	TextInfo.flags = ST_SELECTION;
+	TextInfo.codepage = CP_UTF8;
 	SendMessage(this->hwnd_rich, EM_SETSEL, -1, -1);
-	SendMessage(this->hwnd_rich, EM_REPLACESEL, (WPARAM)0, (LPARAM)buffer);
+	SendMessage(this->hwnd_rich, EM_SETTEXTEX, (WPARAM)&TextInfo, (LPARAM)buffer);
 	delete [] buffer;
 }
 #endif

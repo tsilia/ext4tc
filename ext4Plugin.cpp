@@ -29,6 +29,7 @@
 #include <shellapi.h>
 #include "ext4plugin.h"
 #include "ext4PluginDescr.h"
+#include "logger.h"
 #include <fstream>
 
 #define pluginrootlen 1
@@ -41,7 +42,6 @@ ext4PluginDescr *pluginDescr;
 
 struct thCopyParam
 {
-//	char file_path[256];
 	partition_linux_ext2 *partition;
 	unsigned int inode_num;
 	HANDLE ext2_hnd;
@@ -103,7 +103,6 @@ Return Value:
 }
 
 
-
 /**
  * FsInit - plugin init function
  */
@@ -124,8 +123,8 @@ int __stdcall FsInit(int PluginNr,tProgressProc pProgressProc,tLogProc pLogProc,
 	}
 #ifdef _DEBUG
 	pluginDescr->dWin.show(SW_NORMAL);
-	pluginDescr->dWin.appendText("----======= Ext2Viewer written by Krzysztof Stasiak =======----\n");
 #endif
+	LOG_MESSAGE("----======= Ext2Viewer written by Krzysztof Stasiak =======----\n");
 	if (pluginDescr->search_system_for_linux_ext2_partitions() == -1)
 	{
 		return -1;
@@ -166,9 +165,6 @@ HANDLE __stdcall FsFindFirst(char* Path, WIN32_FIND_DATA *FindData)
 		//TODO
 		char disk_id_char = disk_no + 'a';
 		sprintf_s(FindData->cFileName, sizeof(FindData->cFileName), "%s%c%d", DEVICE_HDD_DISPLAY_PREFIX, disk_id_char, part_no);
-#ifdef _DEBUG2
-		pluginDescr.dWin.appendText(PART_PREFIX"%d Inode size: %d \n", 0, ext2_partitions[0]->ext2->ext4_sb.s_inode_size);
-#endif
 		lf=(pLastFindStuct)malloc(sizeof(tLastFindStuct));
 		strncpy_s(lf->Path, strlen(Path)+1, Path, strlen(Path));
 		lf->searchhandle=INVALID_HANDLE_VALUE;
@@ -181,8 +177,6 @@ HANDLE __stdcall FsFindFirst(char* Path, WIN32_FIND_DATA *FindData)
 	{
 		ext4_dir_entry_2 *dir = NULL;
 		int num_last_entry = 0;		
-		size_t len = strlen(PART_PREFIX);
-		char *ptr = strstr(Path, "\\"PART_PREFIX);
 
 		int ret = pluginDescr->extract_disk_and_part_no(Path, &disk_no, &part_no);
 		if (ret == -1)
@@ -194,10 +188,8 @@ HANDLE __stdcall FsFindFirst(char* Path, WIN32_FIND_DATA *FindData)
 			return INVALID_HANDLE_VALUE;
 		}
 #ifdef _DEBUG
-		pluginDescr->dWin.appendText("Path %s ret: %d disk_no: %d part_no %d part_inumndex %d\n", 
+		LOG_MESSAGE("Path %s ret: %d disk_no: %d part_no %d part_inumndex %d\n", 
 			Path, ret, disk_no, part_no, pluginDescr->get_partition_index_via_real_number(disk_no, part_no));
-		/*pluginDescr.dWin.appendText("Path %s ret: %d disk_no: %d part_no %d 'z'-'a'+1=%d\n", 
-				Path2, ret, disk_no, part_no, 'z'-'a'+1);*/
 #endif
 		
 		if (pluginDescr->get_current_path() == NULL)
@@ -235,6 +227,7 @@ HANDLE __stdcall FsFindFirst(char* Path, WIN32_FIND_DATA *FindData)
 		}
 		lf=(pLastFindStuct)malloc(sizeof(tLastFindStuct));
 		strncpy_s(lf->Path, strlen(Path)+1, Path, strlen(Path));
+
 		lf->searchhandle = 0;
 		lf->disk_no = disk_no;
 		lf->part_no_map = pluginDescr->get_partition_index_via_real_number(disk_no, part_no);
@@ -271,9 +264,7 @@ BOOL __stdcall FsFindNext(HANDLE Hdl,WIN32_FIND_DATA *FindData)
 		sprintf_s(FindData->cFileName, sizeof(FindData->cFileName), "%s%c%d", DEVICE_HDD_DISPLAY_PREFIX, 
 					disk_id_char, ext2_partitions[part_no_map]->get_part_no());
 		strcpy(lf->LastFoundName, FindData->cFileName);
-#ifdef _DEBUG2
-		pluginDescr.dWin.appendText(PART_PREFIX"%d Inode size: %d \n", lf->num, pluginDescr.ext2_part[lf->num]->ext2->ext4_sb.s_inode_size);
-#endif
+		
 		return true;
 	}
 	else
@@ -296,9 +287,6 @@ BOOL __stdcall FsFindNext(HANDLE Hdl,WIN32_FIND_DATA *FindData)
 			}
 			RETURN_FILE(FindData, dir);
 
-#ifdef _DEBUG2
-//			pluginDescr.dWin.appendText("%s filename: %s\n", lf->Path, FindData->cFileName);
-#endif
 			return true;
 		}
 	}
@@ -311,14 +299,8 @@ int __stdcall FsFindClose(HANDLE Hdl)
 {	
 	if (Hdl == INVALID_HANDLE_VALUE)
 	{
-#ifdef _DEBUG2
-		pluginDescr.dWin.appendText("fsfindclose invalid\n");
-#endif
 		return 0;
 	}
-#ifdef _DEBUG2
-	pluginDescr.dWin.appendText("fsfindclose\n");
-#endif
 	pLastFindStuct lf;
 	lf=(pLastFindStuct)Hdl;
 	if (lf->searchhandle!=INVALID_HANDLE_VALUE) {
@@ -333,14 +315,10 @@ int __stdcall FsFindClose(HANDLE Hdl)
 int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteInfoStruct* ri)
 {
 	thCopyParam params = {0};
-	size_t len = strlen(PART_PREFIX);
 	HANDLE hTh = INVALID_HANDLE_VALUE;
 	unsigned int inode_num = 0;
 	unsigned long long fsize = 0, pos = 0;
 	ext4_inode *inode = NULL;
-	char *ptr = strstr(RemoteName, "\\"PART_PREFIX);
-	WCHAR *buffer = NULL;
-	int wcharLen = 0;
 	HANDLE hnd = INVALID_HANDLE_VALUE;
 	LARGE_INTEGER large_pos = {0};
 	int disk_no, part_no;
@@ -351,29 +329,18 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 	int part_no_map = pluginDescr->get_partition_index_via_real_number(disk_no, part_no);
 	if((inode = pluginDescr->get_ext2_inode(disk_no, part_no_map, RemoteName, &inode_num)) == NULL)
 	{
-#ifdef _DEBUG
-		pluginDescr->dWin.appendText("File %s was not found\n", RemoteName);
-#endif
+		LOG_MESSAGE("File %s was not found\n", RemoteName);
 		return FS_FILE_NOTFOUND;
 	}
-#ifdef _DEBUG
-	pluginDescr->dWin.appendText("inode: %u mode: %#0x, %o\n", inode_num, inode->i_mode, inode->i_mode);
-#endif
+	LOG_MESSAGE("inode: %u mode: %#0x, %o\n", inode_num, inode->i_mode, inode->i_mode);
+
 	if(!S_ISREG(inode->i_mode))	
 	{
 		return FS_FILE_NOTSUPPORTED;
 	}
-	wcharLen = MultiByteToWideChar(CP_ACP, 0, LocalName, (int)strlen(LocalName), NULL, 0) + 2;
-	buffer = new WCHAR[wcharLen];
-	memset(buffer, 0, sizeof(WCHAR) * wcharLen);
-	MultiByteToWideChar(CP_ACP, 0, LocalName, (int)strlen(LocalName), buffer, (int)strlen(LocalName));
-	
 
 	if ((hnd = CreateFile(LocalName, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
 	{
-#ifdef _DEBUG2
-		pluginDescr.dWin.appendText("%s FS_FILE_WRITEERROR\n", LocalName);
-#endif
 		return FS_FILE_WRITEERROR;
 	}
 	params.ext2_hnd = hnd;
@@ -394,9 +361,7 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 	{
 		if (GetFileSizeEx(hnd, &large_pos) == 0 || params.error != 0)
 		{
-#ifdef _DEBUG
-			pluginDescr->dWin.appendText("An error %d occured while reading %s\n", params.error, RemoteName);
-#endif			
+			LOG_MESSAGE("An error %d occured while reading %s\n", params.error, RemoteName);
 			CloseHandle(hnd);
 			WaitForSingleObject(hTh, INFINITE);
 			CloseHandle(hTh);
@@ -414,9 +379,7 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 			return FS_FILE_USERABORT;
 		}
 	}	
-#ifdef _DEBUG
-	pluginDescr->dWin.appendText("Finished copying file %s in %d ms\n", RemoteName, GetTickCount() - startTicks);
-#endif			
+	LOG_MESSAGE("Finished copying file %s in %d ms\n", RemoteName, GetTickCount() - startTicks);	
 	CloseHandle(hnd);
 	WaitForSingleObject(hTh, INFINITE);
 	CloseHandle(hTh);

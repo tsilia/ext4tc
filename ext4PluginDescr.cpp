@@ -19,6 +19,7 @@
  */
 
 #include "ext4PluginDescr.h"
+#include "logger.h"
 
 ext4PluginDescr::~ext4PluginDescr()
 {
@@ -33,7 +34,7 @@ int ext4PluginDescr::get_hdd_count()
 	char buffer[30];
 	do
 	{
-		sprintf(buffer, "%s%d", DEVICE_HDD_PREFIX, n);
+		sprintf_s(buffer, sizeof(buffer), "%s%d", DEVICE_HDD_PREFIX, n);
 		hnd = CreateFile(buffer,
                     GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, 
                     NULL, OPEN_EXISTING, 0, NULL);
@@ -55,21 +56,17 @@ int ext4PluginDescr::search_system_for_linux_ext2_partitions()
 		return this->hard_disks_cnt;
 	}
 
-#ifdef _DEBUG
-	this->dWin.appendText("found %d hard disk\n", this->hard_disks_cnt);
-#endif
+	LOG_MESSAGE("found %d hard disk\n", this->hard_disks_cnt);
 
 	this->hard_disks = new disk *[this->hard_disks_cnt];
 	for (int i = 0; i < this->hard_disks_cnt; i++)
 	{
 		char device[30];
-		sprintf(device, "%s%d", DEVICE_HDD_PREFIX, i);
+		sprintf_s(device, sizeof(device), "%s%d", DEVICE_HDD_PREFIX, i);
 		disk *hd = new disk(device);
 		hd->init();
 		int n = hd->get_partitions_ext2_count();
-#ifdef _DEBUG
-		dWin.appendText("on [disk %d] found %d ext2 compatible partitions\n", i, n);
-#endif
+		LOG_MESSAGE("on [disk %d] found %d ext2 compatible partitions\n", i, n);
 
 		if (n > 0)
 		{
@@ -79,10 +76,9 @@ int ext4PluginDescr::search_system_for_linux_ext2_partitions()
 			for (int j = 0; j < n; j++)
 			{
 				ext4_super_block *sb = &linux_part[j]->ext2->ext4_sb;
-				dWin.appendText("(%d) type: %d offset:%lld\n", linux_part[j]->get_part_no(), 
-					linux_part[j]->get_type(), linux_part[j]->get_offset());
-				
-				dWin.appendText("(%d) features EXT4_FEATURE_INCOMPAT_64BIT: %x \n", linux_part[j]->get_part_no(), 
+				LOG_MESSAGE("(%d) type: %d offset:%lld\n", linux_part[j]->get_part_no(), 
+					linux_part[j]->get_type(), linux_part[j]->get_offset());				
+				LOG_MESSAGE("(%d) features EXT4_FEATURE_INCOMPAT_64BIT: %x \n", linux_part[j]->get_part_no(), 
 					!!(sb->s_feature_incompat & EXT4_FEATURE_INCOMPAT_64BIT));
 			}
 #endif
@@ -133,8 +129,7 @@ void ext4PluginDescr::init_ext2_partitions_id_map(int partitions_id_map_elem)
 
 int ext4PluginDescr::extract_disk_and_part_no(char *path, int *disk_no, int *part_no)
 {
-	char *DEVICE_PREFIX = "sd";
-	char *expr = "\\sd";
+	char *expr = "\\"DEVICE_HDD_DISPLAY_PREFIX;
 	char *p_end = NULL;
 	char *p = strstr(path, expr);
 	int len = 0;
@@ -146,9 +141,8 @@ int ext4PluginDescr::extract_disk_and_part_no(char *path, int *disk_no, int *par
 		return -1;
 	}
 	p += strlen(expr);
-#ifdef _DEBUG
-	dWin.appendText("%s(): path %s\n", __FUNCTION__, p);
-#endif
+
+	LOG_MESSAGE("%s(): path %s\n", __FUNCTION__, p);
 
 	//substracting only disk and partition id from path
 	if ((p_end = strchr(p, '\\')) == NULL)
@@ -290,7 +284,7 @@ ext4_dir_entry_2 *ext4PluginDescr::get_first_dir_entry(char *path, int disk_no, 
 		ext4_dir_entry_2 *dir = NULL;
 		char *word = NULL, *lasts = NULL, sep[] = "\\";
 		size_t len = 0;
-		
+				
 		if (this->load_ext2_dir_entry(disk_no, part_no_map, EXT4_ROOT_INO) == -1)
 		{
 			return NULL;
@@ -303,11 +297,7 @@ ext4_dir_entry_2 *ext4PluginDescr::get_first_dir_entry(char *path, int disk_no, 
 			for (word = strtok_s(word + 1, sep, &lasts);
 				word;
 				word = strtok_s(NULL, sep, &lasts))
-			{		
-#ifdef _DEBUG2
-				this->dWin.appendText("path divided into tokens: %s\n", word);
-				this->dWin.appendText("dir_entry_num:%d\n", this->dir_entry_num);
-#endif
+			{
 				len = strlen(word);
 				for(i = 0; i < this->dir_entry_num; i++)
 				{
@@ -316,10 +306,6 @@ ext4_dir_entry_2 *ext4PluginDescr::get_first_dir_entry(char *path, int disk_no, 
 					{
 						dir->name[dir->name_len]='\0';
 						inode_num = dir->inode;
-#ifdef _DEBUG2
-						this->dWin.appendText("found: %s =? %s\n", word, dir->name);
-						this->dWin.appendText("path divided into tokens: %s\n", word);
-#endif
 						if ( this->load_ext2_dir_entry(disk_no, part_no_map, inode_num) == -1)
 						{
 							return NULL;
@@ -331,9 +317,7 @@ ext4_dir_entry_2 *ext4PluginDescr::get_first_dir_entry(char *path, int disk_no, 
 			}
 		}			
 		dir = NULL;
-#ifdef _DEBUG2
-		this->dWin.appendText("dir_entry_num: %d\n", this->dir_entry_num);
-#endif
+
 		for(i = 0; i < this->dir_entry_num; i++)
 		{				
 			dir = this->dir_entries[i];
@@ -372,9 +356,7 @@ ext4_dir_entry_2 *ext4PluginDescr::get_first_dir_entry2(char *path, int disk_no,
 			ptr++;
 			len = strlen(ptr);
 		}
-#ifdef _DEBUG2
-		this->dWin.appendText("dirname -  %s\n", ptr);
-#endif
+
 		for(int i = 0; i < this->dir_entry_num; i++)
 		{
 			dir = this->dir_entries[i];
@@ -400,7 +382,6 @@ ext4_dir_entry_2 *ext4PluginDescr::get_first_dir_entry2(char *path, int disk_no,
 				this->set_current_path(path);
 				break;
 			}
-
 		}
 		*num_entry = j;
 		return dir;

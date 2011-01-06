@@ -29,7 +29,6 @@
 #include <fs/ext4/ext4.h>
 #include <fs/ext4/ext4_extents.h>
 
-#define PART_PREFIX "sda"
 #define DEVICE_HDD_DISPLAY_PREFIX "sd"
 #define DEVICE_HDD_PREFIX "\\\\.\\PhysicalDrive"
 

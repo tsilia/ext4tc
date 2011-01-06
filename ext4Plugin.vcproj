@@ -275,6 +275,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\logger.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ext4-utils\magic.h"
 				>
 			</File>

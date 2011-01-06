@@ -21,6 +21,7 @@
 #include "partition_linux_ext2.h"
 #include <fs/ext4/ext4.h>
 #include <fs/ext4/blocks.h>
+#include "../../logger.h"
 
 /**********************************************************
 	PARTITION_LINUX_EXT2 class	
@@ -357,6 +358,7 @@ unsigned char *partition_linux_ext2::read_file(unsigned int inode_nr, HANDLE hnd
 			*error = -1;
 			return NULL;
 		}
+		LOG_MESSAGE("Read File. Processing block %d / %d physical blk address: %lld\n", i, n_blocks - 1, nr_blk);
 		buffer = read_sectors_ex(block_size_sect * nr_blk, block_size_sect);		
 		if (buffer==NULL){*error = -1; return NULL;}
 		n = 0;
@@ -378,6 +380,7 @@ unsigned char *partition_linux_ext2::read_file(unsigned int inode_nr, HANDLE hnd
 			*error = -1;
 			return NULL;
 		}
+		LOG_MESSAGE("Read File. Processing block %d / %d physical blk address: %lld\n", n_blocks - 1, n_blocks - 1, nr_blk);
 		buffer = read_sectors_ex(block_size_sect * nr_blk, block_size_sect);
 		if(buffer==NULL){*error = -1; return NULL;}
 		n = 0;
