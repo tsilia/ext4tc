@@ -139,14 +139,17 @@ HANDLE __stdcall FsFindFirst(char* Path, WIN32_FIND_DATA *FindData)
 	pLastFindStuct lf;
 	partition_linux_ext2 **ext2_partitions = NULL;
 	int disk_no, part_no;
+	char convPath[MAX_PATH];
 
 	if (!pluginDescr->get_plugin_initialized() || pluginDescr->ext4_partitions_id_map == NULL)
 	{
 		return INVALID_HANDLE_VALUE;
 	}
 
+	int len = MultibyteToMultibyte(CP_ACP, Path, strlen(Path), CP_UTF8, convPath, sizeof(convPath));
+	convPath[len] = '\0';
 	memset(FindData,0,sizeof(WIN32_FIND_DATA));
-	if (strcmp(Path, "\\") == 0) {
+	if (strcmp(convPath, "\\") == 0) {
 		int hd_index = -1, part_index = -1;
 		FindData->dwFileAttributes=FILE_ATTRIBUTE_DIRECTORY;
 		FindData->ftLastWriteTime.dwHighDateTime=0xFFFFFFFF;
@@ -194,14 +197,14 @@ HANDLE __stdcall FsFindFirst(char* Path, WIN32_FIND_DATA *FindData)
 		
 		if (pluginDescr->get_current_path() == NULL)
 		{
-			dir = pluginDescr->get_first_dir_entry(Path, disk_no, part_no_map, &num_last_entry);			
+			dir = pluginDescr->get_first_dir_entry(convPath, disk_no, part_no_map, &num_last_entry);			
 		}
 		else
 		{
 			//if goes up
 			//should be optimalized with get_first_dir_entry2
 			
-			dir = pluginDescr->get_first_dir_entry(Path, disk_no, part_no_map, &num_last_entry);
+			dir = pluginDescr->get_first_dir_entry(convPath, disk_no, part_no_map, &num_last_entry);
 		}
 		if (dir != NULL){
 			if (dir->file_type != EXT4_FT_DIR)
@@ -322,12 +325,15 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 	HANDLE hnd = INVALID_HANDLE_VALUE;
 	LARGE_INTEGER large_pos = {0};
 	int disk_no, part_no;
+	char convRemoteName[MAX_PATH];
 
 	if (pluginDescr->extract_disk_and_part_no(RemoteName, &disk_no, &part_no) == -1)
 		return FS_FILE_NOTFOUND;
 
+	int len = MultibyteToMultibyte(CP_ACP, RemoteName, strlen(RemoteName), CP_UTF8, convRemoteName, sizeof(convRemoteName));
+	convRemoteName[len] = '\0';
 	int part_no_map = pluginDescr->get_partition_index_via_real_number(disk_no, part_no);
-	if((inode = pluginDescr->get_ext2_inode(disk_no, part_no_map, RemoteName, &inode_num)) == NULL)
+	if((inode = pluginDescr->get_ext2_inode(disk_no, part_no_map, convRemoteName, &inode_num)) == NULL)
 	{
 		LOG_MESSAGE("File %s was not found\n", RemoteName);
 		return FS_FILE_NOTFOUND;

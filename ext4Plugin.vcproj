@@ -208,6 +208,10 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\utils.cpp"
+				>
+			</File>
 			<Filter
 				Name="fs"
 				>
@@ -292,6 +296,10 @@
 			</File>
 			<File
 				RelativePath=".\ext4-utils\types.h"
+				>
+			</File>
+			<File
+				RelativePath=".\utils.h"
 				>
 			</File>
 			<Filter

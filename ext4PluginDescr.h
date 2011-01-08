@@ -28,6 +28,7 @@
 #include <fs/ext4/blocks.h>
 #include <fs/ext4/ext4.h>
 #include <fs/ext4/ext4_extents.h>
+#include "utils.h"
 
 #define DEVICE_HDD_DISPLAY_PREFIX "sd"
 #define DEVICE_HDD_PREFIX "\\\\.\\PhysicalDrive"
@@ -35,8 +36,8 @@
 #define RETURN_FILE(FindDATA, DIR_ENTRY)\
 do \
 {\
-	strncpy((FindDATA)->cFileName, (DIR_ENTRY)->name, (DIR_ENTRY)->name_len); \
-	(FindDATA)->cFileName[(DIR_ENTRY)->name_len] = '\0'; \
+	int len = MultibyteToMultibyte(CP_UTF8, (DIR_ENTRY)->name, (DIR_ENTRY)->name_len, CP_ACP, (FindDATA)->cFileName, sizeof((FindDATA)->cFileName));\
+	(FindDATA)->cFileName[len] = '\0'; \
 	if (EXT4_FT_DIR == (DIR_ENTRY)->file_type) \
 	{\
 		(FindDATA)->dwFileAttributes=FILE_ATTRIBUTE_DIRECTORY; \
@@ -56,6 +57,7 @@ public:
 	tProgressProc ProgressProc;
 	tLogProc LogProc;
 	tRequestProc RequestProc;	
+
 
 	//linux
 	disk **hard_disks;
