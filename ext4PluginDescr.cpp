@@ -274,6 +274,18 @@ int ext4PluginDescr::load_ext2_dir_entry(int disk_no, int part_no_map, int inode
 	return (this->dir_entries != NULL)? 0 : -1;
 }
 
+void ext4PluginDescr::free_ext2_dir_entries(ext4_dir_entry_2 **dirs, int num)
+{
+	if (dirs)
+	{
+		for(int i=0; i < num; i++)
+		{
+			delete dirs[i];
+		}
+		delete [] dirs;
+	}
+}
+
 /**
  * get_first_dir_entry
  */

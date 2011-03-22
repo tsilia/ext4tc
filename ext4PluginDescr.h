@@ -125,6 +125,7 @@ public:
 	 */
 	void clear_current_path(){delete [] this->current_path; this->current_path = NULL;}
 
+	void free_ext2_dir_entries(ext4_dir_entry_2 **dirs, int num);
 	/**
 	 * get_first_dir_entry
 	 */
@@ -172,28 +173,68 @@ public:
 	{
 		ext4_dir_entry_2 *dir = NULL;
 		char *ptr = NULL;
-		size_t len = 0;
-		char *localPath = NULL;
+		size_t len = 0, filename_len = 0;
+		char localPath[MAX_PATH], *word = NULL, *lasts = NULL, sep[] = "\\";
+		ext4_inode *inode = NULL;
+		bool found = false;	
+		int entry_num = 0;
+		partition_linux_ext2 **ext2_partitions = this->hard_disks[disk_no]->get_partitions_ext2();
+		ext4_dir_entry_2 **dirs = ext2_partitions[part_no]->get_dir_entry(EXT4_ROOT_INO, &entry_num);
 
-		ptr = strrchr(path, '\\');
+		strncpy(localPath, path, MAX_PATH);
+		word = strchr(localPath + 1, '\\');
+		ptr = strrchr(word, '\\');
 		ptr++;
-		len = strlen(ptr);
+		filename_len = strlen(ptr);
 
-		for(int i = 0; i < this->dir_entry_num; i++)
+		if (word != NULL)
 		{
-			dir = this->dir_entries[i];
-			if (len == dir->name_len && !strncmp(ptr, dir->name, len))
+			for (word = strtok_s(word + 1, sep, &lasts);
+				word && word != ptr;
+				word = strtok_s(NULL, sep, &lasts))
+			{
+				len = strlen(word);
+				for(int i = 0; i < entry_num; i++)
+				{
+					dir = dirs[i];						
+					if (dir != NULL && len == dir->name_len && !strncmp(word, dir->name, len)
+						&& EXT4_FT_DIR == dir->file_type) //found dirname
+					{						
+						int ino_nr = dir->inode;
+						dir->name[dir->name_len]='\0';						
+						this->free_ext2_dir_entries(dirs, entry_num);
+						dirs = ext2_partitions[part_no]->get_dir_entry(ino_nr, &entry_num);
+						found = true;
+						break;
+					}
+				}
+				if (found == false)
+				{
+					this->free_ext2_dir_entries(dirs, entry_num);
+					return NULL;
+				}
+					
+			}
+		}			
+
+		for(int i = 0; i < entry_num; i++)
+		{
+			dir = dirs[i];
+			if (dir->file_type != EXT4_FT_REG_FILE)
+				continue;
+			if (filename_len == dir->name_len && !strncmp(ptr, dir->name, len))
 			{
 #ifdef _DEBUG2
 				this->dWin.appendText("get_inode: %d\n", dir->inode);
 #endif
 				*inode_num = dir->inode;
-				partition_linux_ext2 **ext2_partitions = this->hard_disks[disk_no]->get_partitions_ext2();
-				return ext2_partitions[part_no]->get_ext4_inode(dir->inode);
+				inode = ext2_partitions[part_no]->get_ext4_inode(dir->inode);
+				break;
 			}
 		}
 
-		return NULL;
+		free_ext2_dir_entries(dirs, entry_num);
+		return inode;
 	}
 
 	/**
