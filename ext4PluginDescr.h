@@ -222,7 +222,7 @@ public:
 			dir = dirs[i];
 			if (dir->file_type != EXT4_FT_REG_FILE)
 				continue;
-			if (filename_len == dir->name_len && !strncmp(ptr, dir->name, len))
+			if (filename_len == dir->name_len && !strncmp(ptr, dir->name, dir->name_len))
 			{
 #ifdef _DEBUG2
 				this->dWin.appendText("get_inode: %d\n", dir->inode);
