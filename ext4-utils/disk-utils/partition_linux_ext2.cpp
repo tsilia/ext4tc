@@ -320,7 +320,7 @@ ext2_dir_entry_2 **partition_linux_ext2::get_dir_entry(char* path, unsigned int 
 /**********************************************************
 ***********************************************************/
 
-unsigned char *partition_linux_ext2::read_file(unsigned int inode_nr, HANDLE hnd, int *error)
+unsigned char *partition_linux_ext2::read_file(unsigned int inode_nr, HANDLE hnd, int *error, int *int_flag)
 {
 	struct ext4_super_block *sb = &ext2->ext4_sb;
 	unsigned int block_size_byte = EXT4_BLOCK_SIZE(sb);
@@ -351,7 +351,7 @@ unsigned char *partition_linux_ext2::read_file(unsigned int inode_nr, HANDLE hnd
 	inode_size |= (unsigned long long)inode->i_size_lo;
 	n_blocks = (unsigned int)((inode_size + block_size_byte - 1L) / (unsigned long long)block_size_byte);
 
-	for(unsigned int i=0; i < n_blocks -1; i++)
+	for(unsigned int i=0; i < n_blocks -1  && !(*int_flag); i++)
 	{
 		if (file_blk.get_ext2_blk_nr(i, &nr_blk) < 0)
 		{
@@ -372,6 +372,11 @@ unsigned char *partition_linux_ext2::read_file(unsigned int inode_nr, HANDLE hnd
 		delete [] buffer;
 	}
 
+	if (*int_flag)
+	{
+		*error = -1;
+		return NULL;
+	}
 	offset_max = (unsigned int)(inode_size - (unsigned long long)(n_blocks-1) * (unsigned long long)block_size_byte);
 	if (offset_max>0)
 	{

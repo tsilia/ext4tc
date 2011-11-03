@@ -46,6 +46,7 @@ struct thCopyParam
 	unsigned int inode_num;
 	HANDLE ext2_hnd;
 	int error;
+	int int_flag;
 };
 
 typedef struct {
@@ -353,6 +354,7 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 	partition_linux_ext2 **ext2_partitions = pluginDescr->hard_disks[disk_no]->get_partitions_ext2();
 	params.partition = ext2_partitions[part_no_map];
 	params.inode_num = inode_num;
+	params.int_flag = 0;
 
 	pluginDescr->ProgressProc(pluginDescr->PluginNumber, RemoteName, LocalName, 0);
 #ifdef _DEBUG
@@ -368,8 +370,9 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 		if (GetFileSizeEx(hnd, &large_pos) == 0 || params.error != 0)
 		{
 			LOG_MESSAGE("An error %d occured while reading %s\n", params.error, RemoteName);
-			CloseHandle(hnd);
+			params.int_flag = 1;
 			WaitForSingleObject(hTh, INFINITE);
+			CloseHandle(hnd);
 			CloseHandle(hTh);
 			return FS_FILE_READERROR;
 		}
@@ -379,8 +382,9 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 		if(pluginDescr->ProgressProc(pluginDescr->PluginNumber, RemoteName,
 			LocalName, (int)(((double)large_pos.QuadPart / fsize)*100)) != 0)
 		{
-			CloseHandle(hnd);
+			params.int_flag = 1;
 			WaitForSingleObject(hTh, INFINITE);
+			CloseHandle(hnd);
 			CloseHandle(hTh);
 			return FS_FILE_USERABORT;
 		}
@@ -395,7 +399,7 @@ int __stdcall FsGetFile(char* RemoteName,char* LocalName,int CopyFlags, RemoteIn
 DWORD WINAPI copy_thread_subroutine(LPVOID p)
 {
 	thCopyParam *params = (thCopyParam *)p;
-	params->partition->read_file(params->inode_num, params->ext2_hnd, &params->error);
+	params->partition->read_file(params->inode_num, params->ext2_hnd, &params->error, &params->int_flag);
 	return 0;
 }
 

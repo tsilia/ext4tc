@@ -40,7 +40,7 @@ public:
 	bool get_ext2_gr_descriptors();
 	ext4_inode *get_ext4_inode(unsigned int n_inode);
 	ext4_dir_entry_2 **get_dir_entry(unsigned int inode_nr, int *read_dirs);
-	unsigned char *read_file(unsigned int inode_nr, HANDLE hnd, int *error);
+	unsigned char *read_file(unsigned int inode_nr, HANDLE hnd, int *error, int *int_flag);
 
 	inline void get_ext4_dir_entry(struct ext4_dir_entry_2 *dir_entry, unsigned char *buffer)
 	{ 
