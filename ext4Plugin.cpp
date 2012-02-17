@@ -142,7 +142,7 @@ HANDLE __stdcall FsFindFirst(char* Path, WIN32_FIND_DATA *FindData)
 	int disk_no, part_no;
 	char convPath[MAX_PATH];
 
-	if (!pluginDescr->get_plugin_initialized() || pluginDescr->ext4_partitions_id_map == NULL)
+	if (!pluginDescr || !pluginDescr->get_plugin_initialized() || pluginDescr->ext4_partitions_id_map == NULL)
 	{
 		return INVALID_HANDLE_VALUE;
 	}
