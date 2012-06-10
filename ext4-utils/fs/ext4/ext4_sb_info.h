@@ -49,13 +49,15 @@ public:
 	ext4_sb_info() { gr_desc=NULL; inodes_table_cache = NULL; }
 	~ext4_sb_info()
 	{
-		int n_groups = this->ext4_sb.s_inodes_count / this->ext4_sb.s_inodes_per_group;
 		delete [] gr_desc; 
-		for(int i=0;i<n_groups;i++)
-		{
-			delete [] inodes_table_cache[i];
+		if (inodes_table_cache) {
+			int n_groups = this->ext4_sb.s_inodes_count / this->ext4_sb.s_inodes_per_group;
+			for(int i=0;i<n_groups;i++)
+			{
+				delete [] inodes_table_cache[i];
+			}
+			delete [] inodes_table_cache;
 		}
-		delete [] inodes_table_cache;
 	}
 
 	void superblock_get(unsigned char *buffer);
