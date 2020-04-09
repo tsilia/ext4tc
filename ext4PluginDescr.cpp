@@ -129,7 +129,7 @@ void ext4PluginDescr::init_ext2_partitions_id_map(int partitions_id_map_elem)
 
 int ext4PluginDescr::extract_disk_and_part_no(char *path, int *disk_no, int *part_no)
 {
-	char *expr = "\\"DEVICE_HDD_DISPLAY_PREFIX;
+	char *expr = "\\" DEVICE_HDD_DISPLAY_PREFIX;
 	char *p_end = NULL;
 	char *p = strstr(path, expr);
 	int len = 0;
