@@ -1,0 +1,152 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\fs">
+      <UniqueIdentifier>{1ab88531-7aeb-4c91-bca8-4d6ea9b455e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\fs\ext4">
+      <UniqueIdentifier>{09e6ec79-1372-4d92-a826-ac7b36dcb394}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\disk_utils">
+      <UniqueIdentifier>{f1949a35-3b88-4643-b059-9b5c2090e029}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\windows">
+      <UniqueIdentifier>{c41edbcc-76f7-4f18-97cc-df3232a1a057}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\fs">
+      <UniqueIdentifier>{1fce74f8-07de-4afd-aafd-6176fea167c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\fs\ext4">
+      <UniqueIdentifier>{a5488d2d-acd6-4718-a940-4dc60540fe01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\disk_utils">
+      <UniqueIdentifier>{63eb7c1d-91cc-4727-957e-2a2f6c0dd527}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="windows">
+      <UniqueIdentifier>{abca6401-a8a4-46a9-983e-ec7929fb495d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ext4Plugin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ext4PluginDescr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ext4-utils\fs\ext4\blocks.cpp">
+      <Filter>Source Files\fs\ext4</Filter>
+    </ClCompile>
+    <ClCompile Include="ext4-utils\fs\ext4\ext4_sb_info.cpp">
+      <Filter>Source Files\fs\ext4</Filter>
+    </ClCompile>
+    <ClCompile Include="ext4-utils\disk-utils\disk.cpp">
+      <Filter>Source Files\disk_utils</Filter>
+    </ClCompile>
+    <ClCompile Include="ext4-utils\disk-utils\partition.cpp">
+      <Filter>Source Files\disk_utils</Filter>
+    </ClCompile>
+    <ClCompile Include="ext4-utils\disk-utils\partition_linux_ext2.cpp">
+      <Filter>Source Files\disk_utils</Filter>
+    </ClCompile>
+    <ClCompile Include="ext4-utils\disk-utils\partition_list.cpp">
+      <Filter>Source Files\disk_utils</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\controlObjCls.cpp">
+      <Filter>Source Files\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\debugWindow.cpp">
+      <Filter>Source Files\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\windowCls.cpp">
+      <Filter>Source Files\windows</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ext4plugin.def">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ext4Plugin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ext4PluginDescr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ext4-utils\magic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ext4-utils\types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ext4-utils\fs\ext4\blocks.h">
+      <Filter>Header Files\fs\ext4</Filter>
+    </ClInclude>
+    <ClInclude Include="ext4-utils\fs\ext4\ext4.h">
+      <Filter>Header Files\fs\ext4</Filter>
+    </ClInclude>
+    <ClInclude Include="ext4-utils\fs\ext4\ext4_extents.h">
+      <Filter>Header Files\fs\ext4</Filter>
+    </ClInclude>
+    <ClInclude Include="ext4-utils\fs\ext4\ext4_sb_info.h">
+      <Filter>Header Files\fs\ext4</Filter>
+    </ClInclude>
+    <ClInclude Include="ext4-utils\disk-utils\disk.h">
+      <Filter>Header Files\disk_utils</Filter>
+    </ClInclude>
+    <ClInclude Include="ext4-utils\disk-utils\fs_generic.h">
+      <Filter>Header Files\disk_utils</Filter>
+    </ClInclude>
+    <ClInclude Include="ext4-utils\disk-utils\partition.h">
+      <Filter>Header Files\disk_utils</Filter>
+    </ClInclude>
+    <ClInclude Include="ext4-utils\disk-utils\partition_linux_ext2.h">
+      <Filter>Header Files\disk_utils</Filter>
+    </ClInclude>
+    <ClInclude Include="ext4-utils\disk-utils\partition_list.h">
+      <Filter>Header Files\disk_utils</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\controlObjCls.h">
+      <Filter>windows</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\debugWindowCls.h">
+      <Filter>windows</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\windowCls.h">
+      <Filter>windows</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+</Project>
